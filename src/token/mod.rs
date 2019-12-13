@@ -1,16 +1,17 @@
-#[cfg(test)]
-mod tests {
-    #[test]
-    fn it_works() {
-        assert_eq!(2 + 2, 4);
-    }
-}
-
 pub type TokenType = String;
 
 pub struct Token {
-    _type: TokenType,
-    literal: String,
+    pub _type: TokenType,
+    pub literal: String,
+}
+
+impl Token {
+    pub fn new(token_type: TokenType, ch: char) -> Token {
+        Token {
+            _type: token_type,
+            literal: ch.to_string(),
+        }
+    }
 }
 
 pub const ILLEGAL: &str = "ILLEGAL";
