@@ -42,7 +42,7 @@ impl<'a> Lexer<'a> {
             input: input,
             position: 0,
             read_position: 0,
-            ch: Some(' '),
+            ch: None,
             keyword_map: KeywordMap::new(),
         };
         l.read_char();
@@ -62,7 +62,7 @@ impl<'a> Lexer<'a> {
     pub fn next_token(&mut self) -> token::Token {
         self.skip_whitespace();
         let tok: token::Token = match self.ch {
-            None => token::Token::new(token::EOF, None),
+            None => return token::Token::new(token::EOF, None),
             Some(';') => token::Token::new(token::SEMICOLON, self.ch),
             Some('(') => token::Token::new(token::LPAREN, self.ch),
             Some(')') => token::Token::new(token::RPAREN, self.ch),
@@ -120,9 +120,11 @@ impl<'a> Lexer<'a> {
     }
 
     pub fn skip_whitespace(&mut self) {
-        if self.ch == None {
-            return;
+        if self.read_position >= self.input.len() as u32 {
+            self.ch = None;
+            return
         }
+
         while self.ch.unwrap() == ' '
             || self.ch.unwrap() == '\n'
             || self.ch.unwrap() == '\t'
