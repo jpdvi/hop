@@ -9,7 +9,7 @@ impl<'a> Token<'a> {
     pub fn new(token_type: TokenType, ch: Option<char>) -> Token {
         let mut l = ' '.to_string();
         if ch != None {
-            l = ch.unwrap().to_string()
+            l   = ch.unwrap().to_string();
         }
         Token {
             _type: token_type,
