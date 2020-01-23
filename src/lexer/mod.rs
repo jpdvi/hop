@@ -1,28 +1,25 @@
 use super::token;
 use std::collections::HashMap;
 
-pub struct KeywordMap {
-    data: HashMap<String, String>,
+pub struct KeywordMap<'a> {
+    data: HashMap<&'a str, &'a str>,
 }
 
-impl KeywordMap {
-    pub fn new() -> KeywordMap {
-        let map: HashMap<String, String> = [
-            (String::from("let"), String::from(token::LET)),
-            (String::from("fn"), String::from(token::FUNCTION)),
-            (String::from("true"), String::from(token::TRUE)),
-            (String::from("false"), String::from(token::FALSE)),
-            (String::from("if"), String::from(token::IF)),
-            (String::from("else"), String::from(token::ELSE)),
-            (String::from("return"), String::from(token::RETURN)),
-        ]
-        .iter()
-        .cloned()
-        .collect();
+impl<'a> KeywordMap<'a> {
+    pub fn new() -> KeywordMap<'a> {
+        let map: HashMap<&'a str, &'a str> = [
+            ("let", token::LET),
+            ("fn", token::FUNCTION),
+            ("true", token::TRUE),
+            ("false", token::FALSE),
+            ("if", token::IF),
+            ("else", token::ELSE),
+            ("return", token::RETURN)
+        ].iter().cloned().collect();
         return KeywordMap { data: map };
     }
 
-    pub fn get(&self) -> &HashMap<String, String> {
+    pub fn get(&self) -> &HashMap<&'a str, &'a str> {
         return &self.data;
     }
 }
@@ -33,7 +30,7 @@ pub struct Lexer<'a> {
     pub position: u32,
     pub read_position: u32,
     pub ch: Option<char>,
-    pub keyword_map: KeywordMap,
+    pub keyword_map: KeywordMap<'a>,
 }
 
 impl<'a> Lexer<'a> {
@@ -120,7 +117,7 @@ impl<'a> Lexer<'a> {
     }
 
     pub fn skip_whitespace(&mut self) {
-        if self.read_position >= self.input.len() as u32 {
+        if self.read_position > self.input.len() as u32 {
             self.ch = None;
             return
         }
@@ -210,82 +207,82 @@ mod tests {
                 return false;
              }
              10 == 10;
-             10 != 9;",
+             10 != 9;    ",
         );
         let tests = vec![
             TestScheme::from_string("let", super::token::LET),
             TestScheme::from_string("five", super::token::IDENT),
-            TestScheme::from_char('=', super::token::ASSIGN),
+            TestScheme::from_string("=", super::token::ASSIGN),
             TestScheme::from_string("5", super::token::INT),
-            TestScheme::from_char(';', super::token::SEMICOLON),
+            TestScheme::from_string(";", super::token::SEMICOLON),
             TestScheme::from_string("let", super::token::LET),
             TestScheme::from_string("ten", super::token::IDENT),
-            TestScheme::from_char('=', super::token::ASSIGN),
+            TestScheme::from_string("=", super::token::ASSIGN),
             TestScheme::from_string("10", super::token::INT),
-            TestScheme::from_char(';', super::token::SEMICOLON),
+            TestScheme::from_string(";", super::token::SEMICOLON),
             TestScheme::from_string("let", super::token::LET),
             TestScheme::from_string("add", super::token::IDENT),
-            TestScheme::from_char('=', super::token::ASSIGN),
+            TestScheme::from_string("=", super::token::ASSIGN),
             TestScheme::from_string("fn", super::token::FUNCTION),
-            TestScheme::from_char('(', super::token::LPAREN),
+            TestScheme::from_string("(", super::token::LPAREN),
             TestScheme::from_string("x", super::token::IDENT),
-            TestScheme::from_char(',', super::token::COMMA),
+            TestScheme::from_string(",", super::token::COMMA),
             TestScheme::from_string("y", super::token::IDENT),
-            TestScheme::from_char(')', super::token::RPAREN),
-            TestScheme::from_char('{', super::token::LBRACE),
+            TestScheme::from_string(")", super::token::RPAREN),
+            TestScheme::from_string("{", super::token::LBRACE),
             TestScheme::from_string("x", super::token::IDENT),
-            TestScheme::from_char('+', super::token::PLUS),
+            TestScheme::from_string("+", super::token::PLUS),
             TestScheme::from_string("y", super::token::IDENT),
-            TestScheme::from_char(';', super::token::SEMICOLON),
-            TestScheme::from_char('}', super::token::RBRACE),
-            TestScheme::from_char(';', super::token::SEMICOLON),
+            TestScheme::from_string(";", super::token::SEMICOLON),
+            TestScheme::from_string("}", super::token::RBRACE),
+            TestScheme::from_string(";", super::token::SEMICOLON),
             TestScheme::from_string("let", super::token::LET),
             TestScheme::from_string("result", super::token::IDENT),
-            TestScheme::from_char('=', super::token::ASSIGN),
+            TestScheme::from_string("=", super::token::ASSIGN),
             TestScheme::from_string("add", super::token::IDENT),
-            TestScheme::from_char('(', super::token::LPAREN),
+            TestScheme::from_string("(", super::token::LPAREN),
             TestScheme::from_string("five", super::token::IDENT),
-            TestScheme::from_char(',', super::token::COMMA),
+            TestScheme::from_string(",", super::token::COMMA),
             TestScheme::from_string("ten", super::token::IDENT),
-            TestScheme::from_char(')', super::token::RPAREN),
-            TestScheme::from_char(';', super::token::SEMICOLON),
-            TestScheme::from_char('!', super::token::BANG),
-            TestScheme::from_char('-', super::token::MINUS),
-            TestScheme::from_char('/', super::token::SLASH),
-            TestScheme::from_char('*', super::token::ASTRISK),
-            TestScheme::from_char('5', super::token::INT),
-            TestScheme::from_char(';', super::token::SEMICOLON),
-            TestScheme::from_char('5', super::token::INT),
-            TestScheme::from_char('<', super::token::LT),
+            TestScheme::from_string(")", super::token::RPAREN),
+            TestScheme::from_string(";", super::token::SEMICOLON),
+            TestScheme::from_string("!", super::token::BANG),
+            TestScheme::from_string("-", super::token::MINUS),
+            TestScheme::from_string("/", super::token::SLASH),
+            TestScheme::from_string("*", super::token::ASTRISK),
+            TestScheme::from_string("5", super::token::INT),
+            TestScheme::from_string(";", super::token::SEMICOLON),
+            TestScheme::from_string("5", super::token::INT),
+            TestScheme::from_string("<", super::token::LT),
             TestScheme::from_string("10", super::token::INT),
-            TestScheme::from_char('>', super::token::GT),
-            TestScheme::from_char('5', super::token::INT),
-            TestScheme::from_char(';', super::token::SEMICOLON),
+            TestScheme::from_string(">", super::token::GT),
+            TestScheme::from_string("5", super::token::INT),
+            TestScheme::from_string(";", super::token::SEMICOLON),
             TestScheme::from_string("if", super::token::IF),
-            TestScheme::from_char('(', super::token::LPAREN),
-            TestScheme::from_char('5', super::token::INT),
-            TestScheme::from_char('<', super::token::LT),
+            TestScheme::from_string("(", super::token::LPAREN),
+            TestScheme::from_string("5", super::token::INT),
+            TestScheme::from_string("<", super::token::LT),
             TestScheme::from_string("10", super::token::INT),
-            TestScheme::from_char(')', super::token::RPAREN),
-            TestScheme::from_char('{', super::token::LBRACE),
+            TestScheme::from_string(")", super::token::RPAREN),
+            TestScheme::from_string("{", super::token::LBRACE),
             TestScheme::from_string("return", super::token::RETURN),
             TestScheme::from_string("true", super::token::TRUE),
-            TestScheme::from_char(';', super::token::SEMICOLON),
-            TestScheme::from_char('}', super::token::RBRACE),
+            TestScheme::from_string(";", super::token::SEMICOLON),
+            TestScheme::from_string("}", super::token::RBRACE),
             TestScheme::from_string("else", super::token::ELSE),
-            TestScheme::from_char('{', super::token::LBRACE),
+            TestScheme::from_string("{", super::token::LBRACE),
             TestScheme::from_string("return", super::token::RETURN),
             TestScheme::from_string("false", super::token::FALSE),
-            TestScheme::from_char(';', super::token::SEMICOLON),
-            TestScheme::from_char('}', super::token::RBRACE),
+            TestScheme::from_string(";", super::token::SEMICOLON),
+            TestScheme::from_string("}", super::token::RBRACE),
             TestScheme::from_string("10", super::token::INT),
             TestScheme::from_string("==", super::token::EQUAL),
             TestScheme::from_string("10", super::token::INT),
-            TestScheme::from_char(';', super::token::SEMICOLON),
+            TestScheme::from_string(";", super::token::SEMICOLON),
             TestScheme::from_string("10", super::token::INT),
             TestScheme::from_string("!=", super::token::NOT_EQUAL),
             TestScheme::from_string("9", super::token::INT),
-            TestScheme::from_char(';', super::token::SEMICOLON),
+            TestScheme::from_string(";", super::token::SEMICOLON),
         ];
 
         let mut l: super::Lexer = super::Lexer::new(&input);
