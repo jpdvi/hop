@@ -1,56 +1,49 @@
 use super::token;
 use std::collections::HashMap;
 
-pub struct KeywordMap<'a> {
-    data: HashMap<&'a str, &'a str>,
-}
-
-impl<'a> KeywordMap<'a> {
-    pub fn new() -> KeywordMap<'a> {
-        let map: HashMap<&'a str, &'a str> = [
-            ("let", token::LET),
-            ("fn", token::FUNCTION),
-            ("true", token::TRUE),
-            ("false", token::FALSE),
-            ("if", token::IF),
-            ("else", token::ELSE),
-            ("return", token::RETURN)
-        ].iter().cloned().collect();
-        return KeywordMap { data: map };
-    }
-
-    pub fn get(&self) -> &HashMap<&'a str, &'a str> {
-        return &self.data;
-    }
+pub fn keywords() -> HashMap<&'static str, &'static str> {
+    let map: HashMap<&str, &str> = [
+        ("let", token::LET),
+        ("fn", token::FUNCTION),
+        ("return", token::RETURN),
+        ("==", token::EQUAL),
+        ("!=", token::NOT_EQUAL),
+        ("true", token::TRUE),
+        ("false", token::FALSE),
+        ("if", token::IF),
+        ("else", token::ELSE),
+    ]
+    .iter()
+    .cloned()
+    .collect();
+    return map;
 }
 
 // Lexer
-pub struct Lexer<'a> {
-    pub input: &'a str,
+pub struct Lexer {
+    pub input: String,
     pub position: u32,
     pub read_position: u32,
     pub ch: Option<char>,
-    pub keyword_map: KeywordMap<'a>,
 }
 
-impl<'a> Lexer<'a> {
+impl Lexer {
     pub fn new(input: &str) -> Lexer {
         let mut l = Lexer {
-            input: input,
+            input: input.to_string(),
             position: 0,
             read_position: 0,
             ch: None,
-            keyword_map: KeywordMap::new(),
         };
         l.read_char();
         return l;
     }
 
     pub fn read_char(&mut self) {
-        if self.read_position >= self.input.len() as u32 {
-            self.ch = None;
+        if let Some(ch) = self.input.chars().nth(self.read_position as usize) {
+            self.ch = Some(ch);
         } else {
-            self.ch = Some(self.input.chars().nth(self.read_position as usize).unwrap());
+            self.ch = None;
         }
         self.position = self.read_position;
         self.read_position += 1;
@@ -59,55 +52,52 @@ impl<'a> Lexer<'a> {
     pub fn next_token(&mut self) -> token::Token {
         self.skip_whitespace();
         let tok: token::Token = match self.ch {
-            None => return token::Token::new(token::EOF, None),
-            Some(';') => token::Token::new(token::SEMICOLON, self.ch),
-            Some('(') => token::Token::new(token::LPAREN, self.ch),
-            Some(')') => token::Token::new(token::RPAREN, self.ch),
-            Some(',') => token::Token::new(token::COMMA, self.ch),
-            Some('+') => token::Token::new(token::PLUS, self.ch),
-            Some('{') => token::Token::new(token::LBRACE, self.ch),
-            Some('}') => token::Token::new(token::RBRACE, self.ch),
-            Some('-') => token::Token::new(token::MINUS, self.ch),
-            Some('*') => token::Token::new(token::ASTRISK, self.ch),
-            Some('/') => token::Token::new(token::SLASH, self.ch),
-            Some('<') => token::Token::new(token::LT, self.ch),
-            Some('>') => token::Token::new(token::GT, self.ch),
+            None => token::Token::new(token::EOF, None),
+            Some(';') => token::Token::new(token::SEMICOLON, Some(self.ch.unwrap().to_string())),
+            Some('(') => token::Token::new(token::LPAREN, Some(self.ch.unwrap().to_string())),
+            Some(')') => token::Token::new(token::RPAREN, Some(self.ch.unwrap().to_string())),
+            Some(',') => token::Token::new(token::COMMA, Some(self.ch.unwrap().to_string())),
+            Some('+') => token::Token::new(token::PLUS, Some(self.ch.unwrap().to_string())),
+            Some('{') => token::Token::new(token::LBRACE, Some(self.ch.unwrap().to_string())),
+            Some('}') => token::Token::new(token::RBRACE, Some(self.ch.unwrap().to_string())),
+            Some('-') => token::Token::new(token::MINUS, Some(self.ch.unwrap().to_string())),
+            Some('*') => token::Token::new(token::ASTRISK, Some(self.ch.unwrap().to_string())),
+            Some('/') => token::Token::new(token::SLASH, Some(self.ch.unwrap().to_string())),
+            Some('<') => token::Token::new(token::LT, Some(self.ch.unwrap().to_string())),
+            Some('>') => token::Token::new(token::GT, Some(self.ch.unwrap().to_string())),
             Some('=') => {
-                if self.peek_char() != None  && self.peek_char().unwrap() == '=' {
-                    //  If next character is also = assume token is == 
-                    //  then read chars until == is written to literal
-                    let mut t : token::Token = token::Token::new(token::EQUAL, None); 
-                    t.literal = self.ch.unwrap().to_string() + &self.peek_char().unwrap().to_string();
-                    self.read_char();
-                    t
-                } else { 
-                    let t = token::Token::new(token::ASSIGN, self.ch);
-                    self.read_char();
-                    t
-                }
-            },
-            Some('!') => {
                 if self.peek_char() != None && self.peek_char().unwrap() == '=' {
-                    let mut t : token::Token = token::Token::new(token::NOT_EQUAL, None);
-                    t.literal = self.ch.unwrap().to_string() + &self.peek_char().unwrap().to_string();
+                    //  If next character is also = assume token is ==
+                    //  then read chars until == is written to literal
+                    let mut t: token::Token = token::Token::new(token::EQUAL, 
+                        Some(self.ch.unwrap().to_string() + &self.peek_char().unwrap().to_string()));
                     self.read_char();
                     t
                 } else {
-                    let t  = token::Token::new(token::BANG, self.ch);
-                    t                
+                    let t = token::Token::new(token::ASSIGN, Some(self.ch.unwrap().to_string()));
+                    t
                 }
-            },
+            }
+            Some('!') => {
+                if self.peek_char() != None && self.peek_char().unwrap() == '=' {
+                    let mut t: token::Token = token::Token::new(token::NOT_EQUAL, 
+                        Some(self.ch.unwrap().to_string() + &self.peek_char().unwrap().to_string()));
+                    self.read_char();
+                    t
+                } else {
+                    let t = token::Token::new(token::BANG, Some(self.ch.unwrap().to_string()));
+                    t
+                }
+            }
             y if y.unwrap().is_alphabetic() || y.unwrap() == '_' => {
                 let l: String = self.read_identifier();
                 let _type = self.lookup_ident(&l);
-                let mut t = token::Token::new(_type, None);
-                t.literal = l;
+                let mut t = token::Token::new(_type, Some(l));
                 return t;
             }
             y if y.unwrap().is_numeric() => {
                 let n = self.read_number();
-                let mut t = token::Token::new(token::INT, None);
-                t.literal = n;
+                let mut t = token::Token::new(token::INT, Some(n));
                 return t;
             }
             _ => token::Token::new(token::ILLEGAL, None),
@@ -119,13 +109,14 @@ impl<'a> Lexer<'a> {
     pub fn skip_whitespace(&mut self) {
         if self.read_position > self.input.len() as u32 {
             self.ch = None;
-            return
+            return;
         }
 
-        while self.ch.unwrap() == ' '
-            || self.ch.unwrap() == '\n'
-            || self.ch.unwrap() == '\t'
-            || self.ch.unwrap() == '\r'
+        while self.ch != None
+            && (self.ch.unwrap() == ' '
+                || self.ch.unwrap() == '\n'
+                || self.ch.unwrap() == '\t'
+                || self.ch.unwrap() == '\r')
         {
             self.read_char();
         }
@@ -143,24 +134,24 @@ impl<'a> Lexer<'a> {
     pub fn read_identifier(&mut self) -> String {
         let mut chs: String = String::new();
         while self.ch.unwrap().is_alphabetic() == true {
-            chs.push_str(&String::from(&self.ch.unwrap().to_string()));
+            chs.push_str(&self.ch.unwrap().to_string());
             self.read_char();
         }
         return chs;
     }
 
     pub fn lookup_ident(&mut self, ident: &str) -> token::TokenType {
-        match self.keyword_map.get().get(ident) {
+        match keywords().get(ident) {
             Some(val) => {
                 return &val;
             }
-            _ => return token::IDENT
+            _ => return token::IDENT,
         }
     }
-    
+
     pub fn peek_char(&mut self) -> Option<char> {
-        if self.read_position >= self.input.len() as u32 { 
-            return None;  
+        if self.read_position >= self.input.len() as u32 {
+            return None;
         } else {
             return Some(self.input.chars().nth(self.read_position as usize).unwrap());
         }
@@ -175,19 +166,12 @@ mod tests {
             expected_type: String,
             expected_literal: String,
         }
-        
+
         impl TestScheme {
             fn from_string(exp_literal: &str, exp_type: &str) -> TestScheme {
                 TestScheme {
-                    expected_type : String::from(exp_type),
-                    expected_literal : exp_literal.to_string()
-                }
-            }
-
-            fn from_char(exp_literal: char, exp_type: &str) -> TestScheme {
-                TestScheme {
-                    expected_type : String::from(exp_type),
-                    expected_literal : exp_literal.to_string() 
+                    expected_type: String::from(exp_type),
+                    expected_literal: exp_literal.to_string(),
                 }
             }
         }
@@ -207,7 +191,7 @@ mod tests {
                 return false;
              }
              10 == 10;
-             10 != 9;    ",
+             10 != 9;",
         );
         let tests = vec![
             TestScheme::from_string("let", super::token::LET),
@@ -283,6 +267,7 @@ mod tests {
             TestScheme::from_string("!=", super::token::NOT_EQUAL),
             TestScheme::from_string("9", super::token::INT),
             TestScheme::from_string(";", super::token::SEMICOLON),
+            TestScheme::from_string("", super::token::EOF),
         ];
 
         let mut l: super::Lexer = super::Lexer::new(&input);
