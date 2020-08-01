@@ -1,6 +1,4 @@
 use std::io;
-use super::lexer;
-use super::token;
 
 pub fn start() {
     let mut input = String::new();
@@ -9,7 +7,7 @@ pub fn start() {
         Ok(n) => {
             let mut l : super::lexer::Lexer = super::lexer::Lexer::new(&input);
             loop {
-                let mut tok : super::token::Token = l.next_token();
+                let tok : super::token::Token = l.next_token();
                 if tok._type == super::token::EOF{
                     break;
                 }

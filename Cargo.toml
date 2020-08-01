@@ -1,5 +1,5 @@
 [package]
-name = "blanket"
+name = "hop"
 version = "0.1.0"
 authors = ["jpdvi <davisjp89@gmail.com>"]
 edition = "2018"

@@ -1,19 +1,20 @@
 pub type TokenType<'a> = &'a str;
 
-pub struct Token<'a> {
-    pub _type: TokenType<'a>,
+#[derive(Clone, Debug, PartialEq)]
+pub struct Token {
+    pub _type: String,
     pub literal: String,
 }
 
-impl<'a> Token<'a> {
-    pub fn new(token_type: TokenType, ch: Option<char>) -> Token {
-        let mut l = ' '.to_string();
-        if ch != None {
-            l   = ch.unwrap().to_string();
-        }
+impl Token {
+    pub fn new(token_type: &str, ch: Option<String>) -> Token {
+        let mut _literal = match ch {
+            None => "".to_string(),
+            _ => ch.unwrap()
+        };
         Token {
-            _type: token_type,
-            literal: l,
+            _type: String::from(token_type),
+            literal: _literal,
         }
     }
 }
