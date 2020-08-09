@@ -144,7 +144,7 @@ mod test {
             for i in 0..tests.len() {
                 _test_let_statement(&*program.statements[i], &tests[i]);
             }
-        }
+        }     
     }
 
     fn _test_let_statement(s: &dyn ast::Statement, _name: &Test) {
