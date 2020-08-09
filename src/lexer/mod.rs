@@ -49,52 +49,62 @@ impl Lexer {
         self.read_position += 1;
     }
 
+    pub fn handle_eq(&mut self) -> token::Token {
+        if self.peek_char() != None && self.peek_char().unwrap() == '=' {
+            //  If next character is also = assume token is ==
+            //  then read chars until == is written to literal
+            let mut t: token::Token = token::Token::new(token::EQUAL, 
+                Some(self.ch.unwrap().to_string() + &self.peek_char().unwrap().to_string()));
+            self.read_char();
+            t
+        } else {
+            let t = token::Token::new(token::ASSIGN, self.get_ch());
+            t
+        }
+    }
+
+    pub fn handle_bang(&mut self) -> token::Token {
+        if self.peek_char() != None && self.peek_char().unwrap() == '=' {
+            let mut t: token::Token = token::Token::new(token::NOT_EQUAL, 
+                Some(self.ch.unwrap().to_string() + &self.peek_char().unwrap().to_string()));
+            self.read_char();
+            t
+        } else {
+            let t = token::Token::new(token::BANG, self.get_ch());
+            t
+        }
+    }
+
+    pub fn get_ch(&self) -> Option<String> {
+        Some(self.ch.unwrap().to_string())
+    }
+
     pub fn next_token(&mut self) -> token::Token {
         self.skip_whitespace();
         let tok: token::Token = match self.ch {
             None => token::Token::new(token::EOF, None),
-            Some(';') => token::Token::new(token::SEMICOLON, Some(self.ch.unwrap().to_string())),
-            Some('(') => token::Token::new(token::LPAREN, Some(self.ch.unwrap().to_string())),
-            Some(')') => token::Token::new(token::RPAREN, Some(self.ch.unwrap().to_string())),
-            Some(',') => token::Token::new(token::COMMA, Some(self.ch.unwrap().to_string())),
-            Some('+') => token::Token::new(token::PLUS, Some(self.ch.unwrap().to_string())),
-            Some('{') => token::Token::new(token::LBRACE, Some(self.ch.unwrap().to_string())),
-            Some('}') => token::Token::new(token::RBRACE, Some(self.ch.unwrap().to_string())),
-            Some('-') => token::Token::new(token::MINUS, Some(self.ch.unwrap().to_string())),
-            Some('*') => token::Token::new(token::ASTRISK, Some(self.ch.unwrap().to_string())),
-            Some('/') => token::Token::new(token::SLASH, Some(self.ch.unwrap().to_string())),
-            Some('<') => token::Token::new(token::LT, Some(self.ch.unwrap().to_string())),
-            Some('>') => token::Token::new(token::GT, Some(self.ch.unwrap().to_string())),
-            Some('=') => {
-                if self.peek_char() != None && self.peek_char().unwrap() == '=' {
-                    //  If next character is also = assume token is ==
-                    //  then read chars until == is written to literal
-                    let mut t: token::Token = token::Token::new(token::EQUAL, 
-                        Some(self.ch.unwrap().to_string() + &self.peek_char().unwrap().to_string()));
-                    self.read_char();
-                    t
-                } else {
-                    let t = token::Token::new(token::ASSIGN, Some(self.ch.unwrap().to_string()));
-                    t
-                }
-            }
-            Some('!') => {
-                if self.peek_char() != None && self.peek_char().unwrap() == '=' {
-                    let mut t: token::Token = token::Token::new(token::NOT_EQUAL, 
-                        Some(self.ch.unwrap().to_string() + &self.peek_char().unwrap().to_string()));
-                    self.read_char();
-                    t
-                } else {
-                    let t = token::Token::new(token::BANG, Some(self.ch.unwrap().to_string()));
-                    t
-                }
-            }
+            Some(';') => token::Token::new(token::SEMICOLON, self.get_ch()),
+            Some('(') => token::Token::new(token::LPAREN, self.get_ch()),
+            Some(')') => token::Token::new(token::RPAREN, self.get_ch()),
+            Some(',') => token::Token::new(token::COMMA, self.get_ch()),
+            Some('+') => token::Token::new(token::PLUS, self.get_ch()),
+            Some('{') => token::Token::new(token::LBRACE, self.get_ch()),
+            Some('}') => token::Token::new(token::RBRACE, self.get_ch()),
+            Some('-') => token::Token::new(token::MINUS, self.get_ch()),
+            Some('*') => token::Token::new(token::ASTRISK, self.get_ch()),
+            Some('/') => token::Token::new(token::SLASH, self.get_ch()),
+            Some('<') => token::Token::new(token::LT, self.get_ch()),
+            Some('>') => token::Token::new(token::GT, self.get_ch()),
+            Some('=') => self.handle_eq(),
+            Some('!') => self.handle_bang(),
+            // Handle identifiers
             y if y.unwrap().is_alphabetic() || y.unwrap() == '_' => {
                 let l: String = self.read_identifier();
                 let _type = self.lookup_ident(&l);
                 let mut t = token::Token::new(_type, Some(l));
                 return t;
             }
+            //Handle Integer
             y if y.unwrap().is_numeric() => {
                 let n = self.read_number();
                 let mut t = token::Token::new(token::INT, Some(n));
